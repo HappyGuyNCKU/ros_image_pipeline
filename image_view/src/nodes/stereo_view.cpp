@@ -348,6 +348,7 @@ private:
   
   ImageConstPtr last_left_msg_, last_right_msg_;
   cv::Mat last_left_image_, last_right_image_;
+  cv::Mat_<char>      disparity_gray_;
   cv::Mat_<cv::Vec3b> disparity_color_;
   boost::mutex image_mutex_;
   
@@ -470,8 +471,9 @@ public:
     const cv::Mat_<float> dmat(disparity_msg->image.height, disparity_msg->image.width,
                                (float*)&disparity_msg->image.data[0], disparity_msg->image.step);
     disparity_color_.create(disparity_msg->image.height, disparity_msg->image.width);
-	cv::Mat_<char> disparity_gray(disparity_msg->image.height, disparity_msg->image.width);    
-    for (int row = 0; row < disparity_color_.rows; ++row) {
+	//cv::Mat_<char> disparity_gray(disparity_msg->image.height, disparity_msg->image.width);    
+    disparity_gray_.create(disparity_msg->image.height, disparity_msg->image.width);
+	for (int row = 0; row < disparity_color_.rows; ++row) {
       const float* d = dmat[row];
       for (int col = 0; col < disparity_color_.cols; ++col) {
         int index = (d[col] - min_disparity) * multiplier + 0.5;
@@ -480,7 +482,7 @@ public:
         disparity_color_(row, col)[2] = colormap[3*index + 0];
         disparity_color_(row, col)[1] = colormap[3*index + 1];
         disparity_color_(row, col)[0] = colormap[3*index + 2];
-		disparity_gray(row, col) = index;
+		disparity_gray_(row, col) = index;
       }
     }
 
@@ -492,7 +494,7 @@ public:
     if (!last_right_image_.empty())
       cv::imshow("right", last_right_image_);
     //cv::imshow("disparity", disparity_color_);
-	cv::imshow("disparity", disparity_gray);
+	cv::imshow("disparity", disparity_gray_);
   }
 
   void saveImage(const char* prefix, const cv::Mat& image)
@@ -511,6 +513,10 @@ public:
     if (event == cv::EVENT_LBUTTONDOWN)
     {
       ROS_WARN_ONCE("Left-clicking no longer saves images. Right-click instead.");
+	  StereoView *sv = (StereoView*)param;
+	  boost::lock_guard<boost::mutex> guard(sv->image_mutex_);
+	  ROS_INFO("X:%d ,Y:%d ,value:%d", x,y ,sv->disparity_gray_(x,y));
+	  //cout << "X: " << x << ",Y: "<< y << ",value: " << disparity_gray_(x,y) ;
       return;
     }
     if (event != cv::EVENT_RBUTTONDOWN)
@@ -521,7 +527,7 @@ public:
 
     sv->saveImage("left",  sv->last_left_image_);
     sv->saveImage("right", sv->last_right_image_);
-    sv->saveImage("disp",  sv->disparity_color_);
+    sv->saveImage("disp",  sv->disparity_gray_);
     sv->save_count_++;
   }
 
