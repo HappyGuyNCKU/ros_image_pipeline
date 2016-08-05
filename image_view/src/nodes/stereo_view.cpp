@@ -470,7 +470,7 @@ public:
     const cv::Mat_<float> dmat(disparity_msg->image.height, disparity_msg->image.width,
                                (float*)&disparity_msg->image.data[0], disparity_msg->image.step);
     disparity_color_.create(disparity_msg->image.height, disparity_msg->image.width);
-    
+	cv::Mat_<char> disparity_gray(disparity_msg->image.height, disparity_msg->image.width);    
     for (int row = 0; row < disparity_color_.rows; ++row) {
       const float* d = dmat[row];
       for (int col = 0; col < disparity_color_.cols; ++col) {
@@ -480,6 +480,7 @@ public:
         disparity_color_(row, col)[2] = colormap[3*index + 0];
         disparity_color_(row, col)[1] = colormap[3*index + 1];
         disparity_color_(row, col)[0] = colormap[3*index + 2];
+		disparity_gray(row, col) = index;
       }
     }
 
@@ -490,7 +491,8 @@ public:
       cv::imshow("left", last_left_image_);
     if (!last_right_image_.empty())
       cv::imshow("right", last_right_image_);
-    cv::imshow("disparity", disparity_color_);
+    //cv::imshow("disparity", disparity_color_);
+	cv::imshow("disparity", disparity_gray);
   }
 
   void saveImage(const char* prefix, const cv::Mat& image)
