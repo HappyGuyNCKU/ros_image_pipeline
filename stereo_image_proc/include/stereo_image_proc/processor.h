@@ -39,6 +39,7 @@
 #include <stereo_msgs/DisparityImage.h>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <opencv2/ximgproc/disparity_filter.hpp>
 
 namespace stereo_image_proc {
 
@@ -167,10 +168,15 @@ public:
 private:
   image_proc::Processor mono_processor_;
   
-  mutable cv::Mat_<int16_t> disparity16_; // scratch buffer for 16-bit signed disparity image
+  mutable cv::Mat_<int16_t> disparity16_l; // scratch buffer for 16-bit signed disparity image of left match
+  mutable cv::Mat_<int16_t> disparity16_r; // scratch buffer for 16-bit signed disparity image of right match
+  mutable cv::Mat_<int16_t> disparity16_;  // scratch buffer for 16-bit signed disparity image of WLS filter
+  
 #if CV_MAJOR_VERSION == 3
   mutable cv::Ptr<cv::StereoBM> block_matcher_; // contains scratch buffers for block matching
   mutable cv::Ptr<cv::StereoSGBM> sg_block_matcher_;
+  mutable cv::Ptr<cv::ximgproc::DisparityWLSFilter> wls_filter;
+  mutable cv::Ptr<cv::StereoMatcher> right_matcher;
 #else
   mutable cv::StereoBM block_matcher_; // contains scratch buffers for block matching
   mutable cv::StereoSGBM sg_block_matcher_;

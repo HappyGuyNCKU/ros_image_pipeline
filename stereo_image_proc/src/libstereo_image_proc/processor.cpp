@@ -84,21 +84,43 @@ void StereoProcessor::processDisparity(const cv::Mat& left_rect, const cv::Mat& 
                                        const image_geometry::StereoCameraModel& model,
                                        stereo_msgs::DisparityImage& disparity) const
 {
+  //ROS_WARN("IN processDisparity");
   // Fixed-point disparity is 16 times the true value: d = d_fp / 16.0 = x_l - x_r.
   static const int DPP = 16; // disparities per pixel
   static const double inv_dpp = 1.0 / DPP;
+  static const int spatialRad = 5;
+  static const int colorRad = 10;
+  static const int maxPryLevel1 = 1;
+
+  right_matcher = cv::ximgproc::createRightMatcher(sg_block_matcher_);
+  //ROS_WARN("right_matcher");
+  wls_filter = cv::ximgproc::createDisparityWLSFilter(sg_block_matcher_);  
+  //ROS_WARN("wls_filter");
+
+  //pyrMeanShiftFiltering( left_rect, left_rect, spatialRad, colorRad, maxPryLevel1);
+  //pyrMeanShiftFiltering( right_rect, right_rect, spatialRad, colorRad, maxPryLevel1);
 
   // Block matcher produces 16-bit signed (fixed point) disparity image
-  if (current_stereo_algorithm_ == BM)
+  if (current_stereo_algorithm_ == BM) {
 #if CV_MAJOR_VERSION == 3
-    block_matcher_->compute(left_rect, right_rect, disparity16_);
-  else
-    sg_block_matcher_->compute(left_rect, right_rect, disparity16_);
+    block_matcher_->compute(left_rect, right_rect, disparity16_l);
+    right_matcher->compute(right_rect, left_rect, disparity16_r);
+  }
+  else {
+    sg_block_matcher_->compute(left_rect, right_rect, disparity16_l);
+    right_matcher->compute(right_rect, left_rect, disparity16_r);
+  }
 #else
     block_matcher_(left_rect, right_rect, disparity16_);
   else
     sg_block_matcher_(left_rect, right_rect, disparity16_);
 #endif
+
+  wls_filter->setLambda(8000);
+  wls_filter->setSigmaColor(2);
+  //ROS_WARN("GO INTO FILTER");
+  //ROS_WARN("%d",disparity16_r.empty());
+  wls_filter->filter(disparity16_l, left_rect, disparity16_, disparity16_r);
 
   // Fill in DisparityImage image data, converting to 32-bit float
   sensor_msgs::Image& dimage = disparity.image;

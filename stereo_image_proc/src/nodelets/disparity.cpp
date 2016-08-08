@@ -195,7 +195,7 @@ void DisparityNodelet::imageCb(const ImageConstPtr& l_image_msg,
   // Create cv::Mat views onto all buffers
   const cv::Mat_<uint8_t> l_image = cv_bridge::toCvShare(l_image_msg, sensor_msgs::image_encodings::MONO8)->image;
   const cv::Mat_<uint8_t> r_image = cv_bridge::toCvShare(r_image_msg, sensor_msgs::image_encodings::MONO8)->image;
-
+  //ROS_WARN("GOING INTO processDisparity");
   // Perform block matching to find the disparities
   block_matcher_.processDisparity(l_image, r_image, model_, *disp_msg);
 
