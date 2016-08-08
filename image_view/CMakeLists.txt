@@ -76,6 +76,14 @@ target_link_libraries(stereo_view ${Boost_LIBRARIES}
                                   ${OpenCV_LIBRARIES}
 )
 
+add_executable(stereo_view_gray_scale src/nodes/stereo_view_gray_scale.cpp)
+target_link_libraries(stereo_view_gray_scale ${Boost_LIBRARIES}
+                                  ${catkin_LIBRARIES}
+                                  ${GTK_LIBRARIES}
+                                  ${GTK2_LIBRARIES}
+                                  ${OpenCV_LIBRARIES}
+)
+
 install(TARGETS disparity_view image_view_exe stereo_view
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
