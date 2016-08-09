@@ -34,6 +34,7 @@
 #include <image_view/ImageViewConfig.h>
 
 #include <ros/ros.h>
+#include <ros/console.h>
 #include <image_transport/image_transport.h>
 #include <dynamic_reconfigure/server.h>
 
@@ -54,6 +55,7 @@ int g_colormap;
 
 void reconfigureCb(image_view::ImageViewConfig &config, uint32_t level)
 {
+
   boost::mutex::scoped_lock lock(g_image_mutex);
   g_do_dynamic_scaling = config.do_dynamic_scaling;
   g_colormap = config.colormap;
@@ -74,6 +76,7 @@ void imageCb(const sensor_msgs::ImageConstPtr& msg)
     ROS_ERROR_THROTTLE(30, "Unable to convert '%s' image for display: '%s'",
                        msg->encoding.c_str(), e.what());
   }
+
   if (!g_last_image.empty()) {
     const cv::Mat &image = g_last_image;
     cv::imshow(g_window_name, image);
@@ -153,10 +156,10 @@ int main(int argc, char **argv)
     }
   }
   ROS_INFO_STREAM("Using transport \"" << transport << "\"");
-  image_transport::ImageTransport it(nh);
+ROS_INFO("point1");
+  image_transport::ImageTransport it(nh);  
   image_transport::TransportHints hints(transport, ros::TransportHints(), local_nh);
   image_transport::Subscriber sub = it.subscribe(topic, 1, imageCb, hints);
-
   dynamic_reconfigure::Server<image_view::ImageViewConfig> srv;
   dynamic_reconfigure::Server<image_view::ImageViewConfig>::CallbackType f =
     boost::bind(&reconfigureCb, _1, _2);

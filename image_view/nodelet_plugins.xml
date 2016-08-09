@@ -8,4 +8,8 @@
     <description>Nodelet to view a stereo_msgs/DisparityImage topic</description>
   </class>
 
+  <class name="image_view/disparity_gray_scale" type="image_view::DisparityGrayScaleNodelet" base_class_type="nodelet::Nodelet">
+    <description>Nodelet to view a stereo_msgs/DisparityImage topic</description>
+  </class>
+
 </library>

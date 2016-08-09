@@ -47,7 +47,7 @@ int main(int argc, char **argv)
   nodelet::V_string my_argv(argv + 1, argv + argc);
   my_argv.push_back("--shutdown-on-close"); // Internal
 
-  manager.load(ros::this_node::getName(), "image_view/disparity", remappings, my_argv);
+  manager.load(ros::this_node::getName(), "image_view/disparity_gray_scale", remappings, my_argv);
 
   ros::spin();
   return 0;
