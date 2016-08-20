@@ -156,7 +156,6 @@ int main(int argc, char **argv)
     }
   }
   ROS_INFO_STREAM("Using transport \"" << transport << "\"");
-ROS_INFO("point1");
   image_transport::ImageTransport it(nh);  
   image_transport::TransportHints hints(transport, ros::TransportHints(), local_nh);
   image_transport::Subscriber sub = it.subscribe(topic, 1, imageCb, hints);
