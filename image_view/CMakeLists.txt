@@ -88,7 +88,15 @@ target_link_libraries(stereo_view_gray_scale ${Boost_LIBRARIES}
                                   ${OpenCV_LIBRARIES}
 )
 
-install(TARGETS disparity_view image_view_exe stereo_view
+add_executable(disparity_view_gray_scale src/nodes/disparity_view_gray_scale.cpp)
+target_link_libraries(disparity_view_gray_scale ${Boost_LIBRARIES}
+                                  ${catkin_LIBRARIES}
+                                  ${GTK_LIBRARIES}                              
+                                  ${GTK2_LIBRARIES}
+                                  ${OpenCV_LIBRARIES}
+)
+
+install(TARGETS disparity_view image_view_exe stereo_view stereo_view_gray_scale disparity_view_gray_scale
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 install(FILES nodelet_plugins.xml
