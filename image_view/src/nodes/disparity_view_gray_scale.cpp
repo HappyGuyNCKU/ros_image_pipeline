@@ -49,6 +49,11 @@
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 
+// For output data 
+#include <iostream>                                                             
+#include <fstream>
+
+
 using namespace sensor_msgs;
 using namespace stereo_msgs;
 
@@ -59,6 +64,7 @@ boost::mutex g_image_mutex;
 std::string g_window_name;
 bool g_do_dynamic_scaling;
 int g_colormap;
+cv::Mat_<float> dmat;
 
 static unsigned char colormap[768] = 
   { 150, 150, 150,
@@ -346,11 +352,27 @@ void imageCb(const DisparityImageConstPtr& disparity_msg)//const sensor_msgs::Im
 // Colormap and display the disparity image
     float min_disparity = disparity_msg->min_disparity;
     float max_disparity = disparity_msg->max_disparity;
+
+	std::ofstream out;
+	out.open( "/tmp/text.txt",std::ios::app );
+	if( !out )
+	{
+		out.open( "/tmp/text.txt");
+		if(!out)
+		{
+			ROS_INFO("Couldn't open file.");
+		}
+	}
+	else
+	{
+		out << "min: " << min_disparity  << ", max: " << max_disparity  <<"\n";
+		out.close();		
+	}	
+
     float multiplier = 255.0f / (max_disparity - min_disparity);
 
 	//assert(disparity_msg->image.encoding == enc::TYPE_32FC1);
-    const cv::Mat_<float> dmat(disparity_msg->image.height, disparity_msg->image.width,
-                               (float*)&disparity_msg->image.data[0], disparity_msg->image.step);
+    dmat = cv::Mat_<float> (disparity_msg->image.height, disparity_msg->image.width, (float*)&disparity_msg->image.data[0], disparity_msg->image.step);
 	//cv::Mat_<char> disparity_gray(disparity_msg->image.height, disparity_msg->image.width);   
 	cv::Mat_<cv::Vec3b> disparity_color_;
 	disparity_color_.create(disparity_msg->image.height, disparity_msg->image.width); 
@@ -387,7 +409,9 @@ static void mouseCb(int event, int x, int y, int flags, void* param)
 {
   if (event == cv::EVENT_LBUTTONDOWN) {
     ROS_WARN_ONCE("Left-clicking no longer saves images. Right-click instead.");
-    return;
+    ROS_INFO_ONCE("Left-clicking is used to get pixel disparity value");
+	ROS_INFO("X:%d  Y:%d ,disparity:%f",x,y,dmat(y,x));
+	return;
   } else if (event != cv::EVENT_RBUTTONDOWN) {
     return;
   }
@@ -434,7 +458,7 @@ int main(int argc, char **argv)
   bool autosize;
   local_nh.param("autosize", autosize, false);
   cv::namedWindow(g_window_name, autosize ? CV_WINDOW_AUTOSIZE  : 0);
-//  cv::setMouseCallback(g_window_name, &mouseCb);
+  cv::setMouseCallback(g_window_name, &mouseCb);
 
   // Start the OpenCV window thread so we don't have to waitKey() somewhere
   cv::startWindowThread();
